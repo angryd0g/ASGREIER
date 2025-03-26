@@ -1,0 +1,636 @@
+﻿<Window x:Class="GraphicEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="ASGREIR" Height="600" Width="900" Icon="/icon.ico" WindowStartupLocation="CenterScreen" 
+        MinWidth="900" MinHeight="597" Opacity="1" Loaded="Window_Loaded">
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo Description="GraphicEditor" Overlay="/icon.ico"/>
+    </Window.TaskbarItemInfo>
+    <Window.Resources>
+        <SolidColorBrush x:Key="LightBackgroundBrush" Color="White"/>
+        <SolidColorBrush x:Key="LightMenuBackgroundBrush" Color="#FFD2D2D2"/>
+        <SolidColorBrush x:Key="LightMenuForegroundBrush" Color="Black"/>
+        <SolidColorBrush x:Key="LightToolBarBackgroundBrush" Color="#FFE6E6E6"/>
+        <SolidColorBrush x:Key="LightStatusBarBackgroundBrush" Color="#FFE6E6E6"/>
+
+        <!-- Ресурсы для темной темы -->
+        <SolidColorBrush x:Key="DarkBackgroundBrush" Color="#FF2D2D2D"/>
+        <SolidColorBrush x:Key="DarkMenuBackgroundBrush" Color="#FF3C3C3C"/>
+        <SolidColorBrush x:Key="DarkMenuForegroundBrush" Color="White"/>
+        <SolidColorBrush x:Key="DarkToolBarBackgroundBrush" Color="#FF505050"/>
+        <SolidColorBrush x:Key="DarkStatusBarBackgroundBrush" Color="#FF505050"/>
+        
+        <!-- Переопределяем стиль ToolBar -->
+        <Style TargetType="ToolBar">
+            <Setter Property="OverflowMode" Value="Never"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToolBar">
+                        <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                            <DockPanel>
+                                <ItemsPresenter/>
+                            </DockPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Window.InputBindings>
+        <!-- Файл -->
+        <KeyBinding Command="{Binding NewCommand}" Gesture="Ctrl+N"/>
+        <KeyBinding Command="{Binding OpenCommand}" Gesture="Ctrl+O"/>
+        <KeyBinding Command="{Binding SaveCommand}" Gesture="Ctrl+S"/>
+        <KeyBinding Command="{Binding SaveAsCommand}" Gesture="Ctrl+Shift+S"/>
+        <KeyBinding Command="{Binding PrintCommand}" Gesture="Ctrl+P"/>
+        <!-- Другие команды -->
+        <KeyBinding Command="{Binding UndoCommand}" Gesture="Ctrl+Z"/>
+        <KeyBinding Command="{Binding RedoCommand}" Gesture="Ctrl+Y"/>
+    </Window.InputBindings>
+    <Window.CommandBindings>
+        <CommandBinding Command="New" Executed="New_Click"/>
+        <CommandBinding Command="Open" Executed="OpenImage_Click"/>
+        <CommandBinding Command="Save" Executed="Save_Click"/>
+        <CommandBinding Command="SaveAs" Executed="SaveAs_Click"/>
+        <CommandBinding Command="Print" Executed="Print_Click"/>
+        <CommandBinding Command="ApplicationCommands.Undo" Executed="MenuCancel_Click"/>
+        <CommandBinding Command="ApplicationCommands.Redo" Executed="MenuReturn_Click"/>
+    </Window.CommandBindings>
+    <Grid Background="#FF90C597" Margin="0,0,0,-6">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="19"/>
+            <RowDefinition Height="106.033"/>
+            <RowDefinition Height="12.871"/>
+            <RowDefinition/>
+            <RowDefinition Height="0*"/>
+            <RowDefinition Height="Auto" MinHeight="39.008"/>
+            <RowDefinition Height="0*"/>
+            <!-- Меню -->
+            <!-- Панель инструментов -->
+            <!-- Холст -->
+            <!-- Строка состояния -->
+        </Grid.RowDefinitions>
+
+        <!-- Меню -->
+        <Menu Grid.Row="0" FontFamily="Cascadia Mono" FontSize="16" Background="#FFD2D2D2" x:Name="Menu">
+            <MenuItem Header="Файл" Background="#FF15D00E" BorderThickness="0,0,0,0" x:Name="File">
+                <MenuItem Header="Открыть" Click="OpenImage_Click" InputGestureText="CTRL + O"/>
+                <MenuItem Header="Создать/Новый" Click="New_Click" InputGestureText="CTRL + N"/>
+                <MenuItem Header="Сохранить" Click="Save_Click" InputGestureText="CTRL + S"/>
+                <MenuItem Header="Сохранить как.." Click="SaveAs_Click" InputGestureText="SHIFT + CTRL + S"/>
+                <Separator/>
+                <MenuItem Header="Печать">
+                    <MenuItem Header="Печать" Click="Print_Click" InputGestureText="CTRL + P"/>
+                    <MenuItem Header="Предворительный просмотр печати." Click="ViewPrint_Click"/>
+                </MenuItem>
+                    <Separator/>
+                <MenuItem Header="Очистить холст" Click="ClearCanvas_Click"/>
+                <Separator/>
+                <MenuItem Header="Выход с приложения" Click="Exit_Click" InputGestureText="ALT + F4"/>
+            </MenuItem>
+            <MenuItem Header="Главная" Click="ToggleToolBarTrayVisibility" x:Name="MainMenuItem1" BorderThickness="0,0,0,0" Background="#FFE6E6E6"/>
+            <MenuItem Header="Вид" Click="ToggleViewToolBarTrayVisibility1" x:Name="MainMenuItem3" BorderThickness="0,0,0,0" Background="#FFD2D2D2"/>
+            <MenuItem Header="Настройки" BorderThickness="0,0,0,0" Click="MenuItem_Click" Background="#FFD2D2D2" x:Name="MainSettings" Padding="6,0,6,0" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                <MenuItem Header="Светлая тема" Click="WhiteTheme_Click" Background="#FFD2D2D2"/>
+                <MenuItem Header="Тёмная тема" Click="DarkTheme_Click" Background="#FFD2D2D2" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
+                <Separator/>
+                <MenuItem Header="Во весь экран" Click="FullCanvas_Click" Background="#FFD2D2D2"/>
+            </MenuItem>
+            <MenuItem Header="Справка" Click="Reference" x:Name="MainMenuItemSP" BorderThickness="0,0,0,0" Background="#FFD2D2D2"/>
+            <MenuItem Header="" BorderThickness="0,0,0,0" Click="MenuCancel_Click" Background="#FFD2D2D2" x:Name="MenuCancel" Padding="0,0,0,0" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" Width="22">
+                <MenuItem.Icon>
+                    <Image Source="images/cancel.jpg" Width="16" Height="16"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="" BorderThickness="0,0,0,0" Click="MenuReturn_Click" Background="#FFD2D2D2" x:Name="MenuReturn" Padding="0,0,0,0" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" Width="22">
+                <MenuItem.Icon>
+                    <Image Source="images/return.jpg" Width="16" Height="16"/>
+                </MenuItem.Icon>
+            </MenuItem>
+        </Menu>
+
+        <!-- Панель инструментов -->
+        <ToolBarTray IsLocked="False" x:Name="MainToolBarTray" Background="#FFE6E6E6" Margin="0,0,0,2" Grid.Row="1">
+            <ToolBar Margin="6,12,-106,29" FontFamily="Arial" Background="{x:Null}" Visibility="Visible">
+                <Button Click="SelectTool_Click" ToolTip="Выделить" Height="63" Width="103" Background="{x:Null}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <Image Source="images/videlobl.jpg" Width="20" Height="20"/>
+                        <TextBlock Text="Выделить" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                </Button>
+            </ToolBar>
+            <ToolBar Margin="112,12,-112,47" Background="{x:Null}" Visibility="Visible">
+                <Button Click="ResizeCanvas_Click" ToolTip="Изменить размер холста" Height="29" Width="130" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" Visibility="Visible">
+                        <Image Source="images/izmrazmer.jpg" Width="20" Height="20" Margin="0,0,5,0" Visibility="Visible"/>
+                        <TextBlock Text="Изменить размер" VerticalAlignment="Center" Width="99" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Menu Height="22" Width="100" Background="#FFE6E6E6" x:Name="IzmPover" Visibility="Visible">
+                    <MenuItem Header="Повернуть" Background="{x:Null}" FontFamily="Arial" Width="100" Height="20" BorderThickness="0,0,0,0" x:Name="IzmPover1" Visibility="Visible">
+                        <MenuItem.Icon>
+                            <Image Source="images/povernut.jpg" Width="16" Height="16"/>
+                        </MenuItem.Icon>
+                        <MenuItem Header="Повернуть на 90° вправо" Click="Rotate90Right_Click"/>
+                        <MenuItem Header="Повернуть на 90° влево" Click="Rotate90Left_Click"/>
+                        <MenuItem Header="Повернуть на 180°" Click="Rotate180_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Отразить по горизонтали" Click="FlipHorizontal_Click"/>
+                        <MenuItem Header="Отразить по вертикали" Click="FlipVertical_Click"/>
+                    </MenuItem>
+                </Menu>
+            </ToolBar>
+            <!-- Инструменты -->
+            <ToolBar Margin="143,5,-143,32" Background="{x:Null}" Visibility="Visible" x:Name="ToolBarIns1">
+                <Button Click="Tool_Click" Tag="Pencil" ToolTip="Карандаш" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="20" Height="20" Source="images/Pencil.jpg" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Tool_Click" Tag="Fill" ToolTip="Заливка" VerticalAlignment="Top" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                        <Image Source="images/Fill.jpg" Width="20" Height="20" VerticalAlignment="Center" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Tool_Click" Tag="Eraser" ToolTip="Ластик" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Source="images/Eraser.jpg" Width="20" Height="20" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+            </ToolBar>
+            <ToolBar Margin="147,5,-147,60" Background="{x:Null}" Visibility="Visible" x:Name="ToolBarIns2">
+                <Button Click="PalitraColor_Click" Tag="Palitra" ToolTip="Палитра" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="20" Height="20" Source="images/Palitra.jpg" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Text_Click" Tag="Текст" ToolTip="Текст" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="20" Height="20" Source="images/text.jpg" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+            </ToolBar>
+            <ToolBar Margin="152,41,-188,45" Width="36" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" Visibility="Visible">
+                <ComboBox x:Name="BrushSelector" SelectionChanged="BrushSelector_SelectionChanged" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" Height="28" Width="37" Visibility="Visible">
+                    <ComboBoxItem Tag="Кисть 1" ToolTip="Кисть - По умолчанию">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="images/defult.png" Width="20" Height="20" Margin="0,0,5,0" />
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem Tag="Кисть 2" ToolTip="Кисть - Полупрозрачная">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="images/defult.png" Width="20" Height="20" Margin="0,0,5,0" />
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem Tag="Кисть 3" ToolTip="Кисть - Градиентная">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="images/grad.png" Width="20" Height="20" Margin="0,0,5,0" />
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem Tag="Кисть 4" ToolTip="Кисть - Радиальная">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="images/defult.png" Width="20" Height="20" Margin="0,0,5,0" />
+                        </StackPanel>
+                    </ComboBoxItem>
+                </ComboBox>
+            </ToolBar>
+            <!-- Фигуры -->
+            <ToolBar Margin="329,6,-336,31" Background="{x:Null}" Visibility="Visible" x:Name="ToolBarFi1">
+                <Button Click="Tool_Click" Tag="Line" ToolTip="Линия" VerticalAlignment="Stretch" Background="#00000000" BorderThickness="0,0,0,0" Width="26" Height="26" HorizontalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image x:Name="image1" Width="26" Height="26" Source="images/line.jpg" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Tool_Click" Tag="Rectangle" ToolTip="Прямоугольник" VerticalAlignment="Stretch" BorderThickness="0,0,0,0" Width="26" Height="26" HorizontalAlignment="Stretch" VerticalContentAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" Visibility="Visible">
+                        <Image Width="22" Height="21" Source="images/Rectangle.jpg" Stretch="Fill" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Tool_Click" Tag="Ellipse" ToolTip="Круг/Овал/Эллипс" BorderThickness="0,0,0,0" Width="26" Height="26" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image x:Name="image" Width="24" Height="24" Source="images/ellipse.jpg" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+            </ToolBar>
+            <ToolBar Margin="337,6,-337,31" Visibility="Visible" Background="{x:Null}" x:Name="ToolBarFi2">
+                <Button Click="Tool_Click" Tag="Triangle" ToolTip="Треугольник" BorderThickness="0,0,0,0" Width="26" Height="26" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Visibility="Visible">
+                        <Image Width="20" Height="20" Source="images/Triangle.jpg" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Tool_Click" Tag="RightTriangle" ToolTip="Прямоугольный треугольник" HorizontalAlignment="Stretch" BorderThickness="0,0,0,0" Width="26" Height="26" VerticalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="20" Height="20" Source="images/RightTriangle.jpg" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Tool_Click" Tag="Diamond" ToolTip="Ромб" HorizontalAlignment="Stretch" BorderThickness="0,0,0,0" Width="26" Height="26" VerticalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Source="images/diamond.jpg" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+            </ToolBar>
+            <ToolBar Margin="338,6,-331,0" Height="80" VerticalAlignment="Top" Visibility="Visible" Background="{x:Null}" x:Name="ToolBarFi3">
+                <Button Click="Tool_Click" Tag="Pentagon" ToolTip="Пятиугольник" BorderThickness="0,0,0,0" Width="26" Height="26" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="20" Height="20" Source="images/Pentagon.jpg" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Tool_Click" Tag="Hexagon" ToolTip="Шестиугольник" BorderThickness="0,0,0,0" Width="26" Height="26" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="20" Height="20" Source="images/Hexagon.jpg" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Tool_Click" Tag="ArrowRight" ToolTip="Стрелка вправо" BorderThickness="0,0,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" Height="26" Width="26" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="26" Height="26" Source="images/ArrowRight.jpg" Stretch="Fill" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+            </ToolBar>
+            <ToolBar Margin="332,6,-332,31" Visibility="Visible" Background="{x:Null}" x:Name="ToolBarFi4">
+                <Button Click="Tool_Click" Tag="ArrowLeft" ToolTip="Стрелка влево" BorderThickness="0,0,0,0" Width="26" Height="26" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="22" Height="22" Source="images/ArrowLeft.jpg" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Tool_Click" Tag="ArrowUp" ToolTip="Стрелка вверх" BorderThickness="0,0,0,0" Width="26" Height="26" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="22" Height="22" Source="images/ArrowUp.jpg" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Tool_Click" Tag="ArrowDown" ToolTip="Стрелка вниз" BorderThickness="0,0,0,0" Width="26" Height="26" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="24" Height="24" Source="images/ArrowDown.jpg" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+            </ToolBar>
+            <ToolBar Margin="333,6,-333,31" Visibility="Visible" Background="{x:Null}" x:Name="ToolBarFi5">
+                <Button Click="Tool_Click" Tag="Star4" ToolTip="Четырёхконечная звезда" BorderThickness="0,0,0,0" Width="26" Height="26" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="26" Height="26" Source="images/Star4.jpg" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Tool_Click" Tag="Star5" ToolTip="Пятиконечная звезда" BorderThickness="0,0,0,0" Width="26" Height="26" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="22" Height="22" Source="images/Star5.jpg" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="Tool_Click" Tag="Star6" ToolTip="Шестиконечная звезда" BorderThickness="0,0,0,0" Width="26" Height="26" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Visible">
+                        <Image Width="22" Height="22" Source="images/Star6.jpg" VerticalAlignment="Center" Visibility="Visible"/>
+                        <TextBlock Text="" HorizontalAlignment="Center" Margin="0,2,0,0" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+            </ToolBar>
+            <!-- Цвет -->
+            <ToolBar Margin="80,6,-140,78" Width="90" Height="30" Background="{x:Null}" Visibility="Visible">
+                <Button Click="Color_Click" ToolTip="Изменить цвет линии" Height="30" Width="90" FontFamily="Arial" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" Visibility="Visible">
+                        <TextBlock Text="Выбрать цвет" VerticalAlignment="Center" Width="77" Height="14" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+            </ToolBar>
+            <ToolBar Margin="60,36,-117,57" Width="65" Background="{x:Null}" FontFamily="Arial" FontSize="14" Visibility="Visible">
+                <Button Click="Thickness_Click" ToolTip="Изменить толщину линии" Height="22" Width="65" HorizontalAlignment="Stretch" FontSize="12" VerticalAlignment="Top" Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" Visibility="Visible">
+                        <TextBlock Text="Толщина" Width="50" Height="14" VerticalAlignment="Top" Visibility="Visible"/>
+                    </StackPanel>
+                </Button>
+            </ToolBar>
+            <ToolBar Margin="0,60,-108,28" HorizontalAlignment="Right" Width="45" HorizontalContentAlignment="Center" VerticalContentAlignment="Stretch" UseLayoutRounding="False" Background="{x:Null}" Visibility="Visible">
+                <Border Width="45" Height="25" BorderBrush="Black" BorderThickness="1" Visibility="Visible">
+                    <Rectangle x:Name="CurrentColorDisplay" Fill="Black" Width="45" HorizontalAlignment="Center" Visibility="Visible"/>
+                    <!-- По умолчанию чёрный цвет -->
+                </Border>
+            </ToolBar>
+            <ToolBar Margin="310,41,-469,55" Visibility="Visible">
+                <StackPanel Orientation="Horizontal" Width="160" Visibility="Visible">
+                    <TextBox x:Name="SearchTextBox" Width="119" VerticalContentAlignment="Center" Padding="5" Height="21" FontFamily="Arial" BorderThickness="0,0,0,0" ClipToBounds="True" FontSize="10" Visibility="Visible" />
+                    <Button x:Name="SearchButton" Content="Поиск" Click="SearchButton_Click" BorderThickness="0,0,0,0" Background="#FF15D00E" FontFamily="Arial" Width="41" Height="21" />
+                </StackPanel>
+            </ToolBar>
+        </ToolBarTray>
+        <ToolBarTray IsLocked="False" x:Name="ViewToolBarTray" Background="#FFE6E6E6" Margin="0,0,0,2" Grid.Row="1" Visibility="Collapsed">
+            <ToolBar Margin="6,6,-120,14" FontFamily="Arial" Background="{x:Null}" RenderTransformOrigin="0.5,0.5" Width="115" Height="60">
+                <ToolBar.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleX="-1.24"/>
+                        <RotateTransform/>
+                        <TranslateTransform X="-0.645"/>
+                    </TransformGroup>
+                </ToolBar.RenderTransform>
+
+                <!-- Новый CheckBox для управления видимостью DockPanel -->
+
+                <CheckBox x:Name="StatusBarCheckBox" Content="Строка состояния" ToolTip="Скрыть/показать строку состояния"
+                  IsChecked="False" Checked="StatusBarCheckBox_Checked" Unchecked="StatusBarCheckBox_Unchecked" 
+                  Width="115" Height="20" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+                <CheckBox x:Name="GridLinesCheckBox" Content="Линии сетки" ToolTip="Показать/скрыть линии сетки"
+                  IsChecked="False" Checked="GridLinesCheckBox_Checked" Unchecked="GridLinesCheckBox_Unchecked" 
+                  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="20" Width="80"/>
+
+                <CheckBox x:Name="RulersCheckBox" Content="Линейки" ToolTip="Показать/скрыть линейки"
+                  IsChecked="False" Checked="RulersCheckBox_Checked" Unchecked="RulersCheckBox_Unchecked" 
+                  Height="20"/>
+            </ToolBar>
+            <ToolBar Margin="135,41,-136,19"  FontFamily="Arial" Background="{x:Null}" RenderTransformOrigin="0.5,0.5" Width="115">
+                <CheckBox x:Name="ShowLayersCheckBox" Content="Отобразить слои" ToolTip="Показать/скрыть панель слоев"
+                  IsChecked="False" Checked="ShowLayersCheckBox_Checked" Unchecked="ShowLayersCheckBox_Unchecked" 
+                  Width="115" Height="20" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </ToolBar>
+        </ToolBarTray>
+        <Label Content="Показать/скрыть" HorizontalAlignment="Left" Margin="16,87,0,0" Background="{x:Null}" FontFamily="Arial" x:Name="label5" Width="94" Grid.Row="1" Padding="0,0,0,0" UseLayoutRounding="False" Height="17" VerticalAlignment="Top" Visibility="Collapsed"/>
+        <Separator HorizontalAlignment="Left" Margin="75,45,0,0" Width="106" RenderTransformOrigin="0.5,0.5" x:Name="sp4" Grid.Row="1" Height="14" VerticalAlignment="Top" Visibility="Collapsed">
+            <Separator.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-90"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Separator.RenderTransform>
+        </Separator>
+        <ScrollViewer x:Name="DrawingScrollViewer"  ClipToBounds="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Grid.Row="3" Margin="0,1,0,4">
+            <Canvas x:Name="DrawingCanvas"  Grid.Row="3" Background="White" ClipToBounds="True"
+            MouseDown="Canvas_MouseDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp"
+            KeyDown="Canvas_KeyDown " MouseWheel="Canvas_MouseWheel"
+            Focusable="True" Width="800" Height="600">
+                <Canvas.RenderTransform>
+                    <ScaleTransform x:Name="CanvasScaleTransform" ScaleX="1" ScaleY="1"/>
+                </Canvas.RenderTransform>
+                <Canvas x:Name="GridLinesCanvas" IsHitTestVisible="False"/>
+            </Canvas>   
+        </ScrollViewer>
+
+        <!-- Строка состояния -->
+        <StatusBar FontFamily="Cascadia Code" FontSize="14" x:Name="StatusBar" Grid.Row="5" Height="34" VerticalAlignment="Center">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusText" Text="Готово"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock x:Name="CursorPositionText" Text="X: 0, Y: 0"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Stretch"/>
+
+            <!-- Масштаб -->
+            <StatusBarItem HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal" Margin="10,0,0,0">
+                    <TextBlock Text="Масштаб:" VerticalAlignment="Center"/>
+                    <Slider x:Name="ScaleSlider" Width="100" Minimum="0.5" Maximum="8" Value="1" 
+                            ValueChanged="ScaleSlider_ValueChanged" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="ScaleText" Text="" Margin="1,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+            </StatusBarItem>
+        </StatusBar>
+        <Label Content="Изображение" HorizontalAlignment="Left" Margin="90,87,0,2" Background="{x:Null}" FontFamily="Arial" x:Name="label1" Width="76" Grid.Row="1" Padding="0,0,0,0" Visibility="Visible"/>
+        <Separator HorizontalAlignment="Left" Margin="201,0,0,0" Width="106" RenderTransformOrigin="0.5,0.5" x:Name="sp1" Grid.Row="1" Height="14" VerticalAlignment="Center" Visibility="Visible" Background="#FFA0A0A0">
+            <Separator.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-90"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Separator.RenderTransform>
+        </Separator>
+        <Label Content="Инструменты" HorizontalAlignment="Left" Margin="280,87,0,0" Background="{x:Null}" FontFamily="Arial" x:Name="label2" Width="75" Grid.Row="1" Padding="0,0,0,0" UseLayoutRounding="False" Height="17" VerticalAlignment="Top" Visibility="Visible"/>
+        <Separator HorizontalAlignment="Left" Margin="328,0,0,0" Width="106" RenderTransformOrigin="0.5,0.5" x:Name="sp2" Grid.Row="1" Height="14" VerticalAlignment="Center" Visibility="Visible">
+            <Separator.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-90"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Separator.RenderTransform>
+        </Separator>
+        <Label Content="Фигуры" HorizontalAlignment="Left" Margin="495,87,0,0" Background="{x:Null}" FontFamily="Arial" x:Name="label3" Width="43" Grid.Row="1" Padding="0,0,0,0" UseLayoutRounding="False" Height="17" VerticalAlignment="Top" Visibility="Visible"/>
+        <Separator HorizontalAlignment="Left" Margin="602,0,0,0" Width="106" RenderTransformOrigin="0.5,0.5" x:Name="sp3" Grid.Row="1" Height="14" VerticalAlignment="Center" Visibility="Visible">
+            <Separator.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-90"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Separator.RenderTransform>
+        </Separator>
+        <Label Content="Поисковая строка" HorizontalAlignment="Left" Margin="694,87,0,0" Background="{x:Null}" FontFamily="Arial" x:Name="label4" Width="100" Grid.Row="1" Padding="0,0,0,0" UseLayoutRounding="False" Height="17" VerticalAlignment="Top" Visibility="Visible"/>
+        <DockPanel Background="#FFE6E6E6" Margin="0,1,0,4" Grid.Row="3" HorizontalAlignment="Left" Width="300" RenderTransformOrigin="0.5,0.5" x:Name="UprSloi" Visibility="Collapsed">
+            <DockPanel.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform AngleX="0.147"/>
+                    <RotateTransform/>
+                    <TranslateTransform X="0.497"/>
+                </TransformGroup>
+            </DockPanel.RenderTransform>
+            <!-- Панель управления слоями -->
+            <Border DockPanel.Dock="Top" Background="#FFE6E6E6" Padding="5" CornerRadius="5" Margin="0,0,0,5">
+                <StackPanel>
+                    <TextBlock Text="Управление слоями" Margin="0,5,0,5" FontFamily="Arial" Height="15" HorizontalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <Button Content="Добавить слой" Click="AddLayer_Click" Margin="2,2,6,2" Padding="5" FontFamily="Arial" Background="{x:Null}" BorderBrush="{x:Null}" />
+                        <Button Content="Удалить слой" Click="RemoveLayer_Click" Margin="2" Padding="5" FontFamily="Arial" Background="{x:Null}" BorderBrush="{x:Null}" />
+                    </StackPanel>
+                    <ListBox x:Name="LayersListBox" Margin="0,5,0,0" Height="150" SelectionChanged="LayersListBox_SelectionChanged" FontFamily="Arial" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox IsChecked="{Binding IsVisible}" VerticalAlignment="Center" Margin="0,0,5,0" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" />
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
+                        <Button Content="↓" Click="MoveLayerDown_Click" Margin="6,0,6,0" Padding="0,-4,0,0" FontFamily="Arial" Background="{x:Null}" Width="40" Height="25" BorderBrush="{x:Null}" FontSize="20" />
+                        <Button Content="↑" Click="MoveLayerUp_Click" Padding="0,-4,0,0" FontFamily="Arial" Background="{x:Null}" Width="40" Height="25" BorderBrush="{x:Null}" FontSize="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </DockPanel>
+        <Label Content="Слои" HorizontalAlignment="Left" Margin="178,87,0,0" Background="{x:Null}" FontFamily="Arial" x:Name="label6" Width="30" Grid.Row="1" Padding="0,0,0,0" UseLayoutRounding="False" Height="17" VerticalAlignment="Top" Visibility="Collapsed"/>
+        <Separator HorizontalAlignment="Left" Margin="206,45,0,0" Width="106" RenderTransformOrigin="0.5,0.5" x:Name="sp4_Копировать" Grid.Row="1" Height="14" VerticalAlignment="Top" Visibility="Collapsed">
+            <Separator.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-90"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Separator.RenderTransform>
+        </Separator>
+        <Grid Grid.Row="2">
+            <!-- Горизонтальная линейка -->
+            <Canvas x:Name="HorizontalRuler" Height="20" VerticalAlignment="Top" IsHitTestVisible="False" Visibility="Collapsed">
+                <!-- Деления горизонтальной линейки -->
+                <Line X1="100" Y1="0" X2="100" Y2="15" Stroke="Black" StrokeThickness="1" IsHitTestVisible="False"/>
+                <Line X1="200" Y1="0" X2="200" Y2="20" Stroke="Black" StrokeThickness="1" IsHitTestVisible="False"/>
+                <Line X1="300" Y1="0" X2="300" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="400" Y1="0" X2="400" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="500" Y1="0" X2="500" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="600" Y1="0" X2="600" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="700" Y1="0" X2="700" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="800" Y1="0" X2="800" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="900" Y1="0" X2="900" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="1000" Y1="0" X2="1000" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="1100" Y1="0" X2="1100" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="1200" Y1="0" X2="1200" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="1300" Y1="0" X2="1300" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="1400" Y1="0" X2="1400" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="1500" Y1="0" X2="1500" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="1600" Y1="0" X2="1600" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="1700" Y1="0" X2="1700" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="1800" Y1="0" X2="1800" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="1900" Y1="0" X2="1900" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="2000" Y1="0" X2="2000" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="2100" Y1="0" X2="2100" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="2200" Y1="0" X2="2200" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="2300" Y1="0" X2="2300" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="2400" Y1="0" X2="2400" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="2500" Y1="0" X2="2500" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="2600" Y1="0" X2="2600" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="2700" Y1="0" X2="2700" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="2800" Y1="0" X2="2800" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="2900" Y1="0" X2="2900" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="3000" Y1="0" X2="3000" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="3100" Y1="0" X2="3100" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="3200" Y1="0" X2="3200" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="3300" Y1="0" X2="3300" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="3400" Y1="0" X2="3400" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="3500" Y1="0" X2="3500" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="3600" Y1="0" X2="3600" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="3700" Y1="0" X2="3700" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="3800" Y1="0" X2="3800" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="3900" Y1="0" X2="3900" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="4000" Y1="0" X2="4000" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="4100" Y1="0" X2="4100" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="4200" Y1="0" X2="4200" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="4300" Y1="0" X2="4300" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="4400" Y1="0" X2="4400" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="4500" Y1="0" X2="4500" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="4600" Y1="0" X2="4600" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="4700" Y1="0" X2="4700" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="4800" Y1="0" X2="4800" Y2="20" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="4900" Y1="0" X2="4900" Y2="15" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="5000" Y1="0" X2="5000" Y2="20" Stroke="Black" StrokeThickness="1"/>
+
+                <!-- Цифры (каждые 100 мм) -->
+                <TextBlock Text="100" Canvas.Left="100" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="200" Canvas.Left="200" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="300" Canvas.Left="300" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="400" Canvas.Left="400" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="500" Canvas.Left="500" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="600" Canvas.Left="600" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="700" Canvas.Left="700" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="800" Canvas.Left="800" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="900" Canvas.Left="900" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="1000" Canvas.Left="1000" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="1100" Canvas.Left="1100" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="1200" Canvas.Left="1200" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="1300" Canvas.Left="1300" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="1400" Canvas.Left="1400" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="1500" Canvas.Left="1500" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="1600" Canvas.Left="1600" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="1700" Canvas.Left="1700" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="1800" Canvas.Left="1800" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="1900" Canvas.Left="1900" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="2000" Canvas.Left="2000" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="2100" Canvas.Left="2100" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="2200" Canvas.Left="2200" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="2300" Canvas.Left="2300" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="2400" Canvas.Left="2400" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="2500" Canvas.Left="2500" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="2600" Canvas.Left="2600" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="2700" Canvas.Left="2700" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="2800" Canvas.Left="2800" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="2900" Canvas.Left="2900" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="3000" Canvas.Left="3000" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="3100" Canvas.Left="3100" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="3200" Canvas.Left="3200" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="3300" Canvas.Left="3300" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="3400" Canvas.Left="3400" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="3500" Canvas.Left="3500" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="3600" Canvas.Left="3600" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="3700" Canvas.Left="3700" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="3800" Canvas.Left="3800" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="3900" Canvas.Left="3900" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="4000" Canvas.Left="4000" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="4100" Canvas.Left="4100" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="4200" Canvas.Left="4200" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="4300" Canvas.Left="4300" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="4400" Canvas.Left="4400" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="4500" Canvas.Left="4500" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="4600" Canvas.Left="4600" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="4700" Canvas.Left="4700" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="4800" Canvas.Left="4800" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="4900" Canvas.Left="4900" Canvas.Top="20" FontSize="10"/>
+                <TextBlock Text="5000" Canvas.Left="5000" Canvas.Top="20" FontSize="10"/>
+                <!-- Ползунок горизонтальной линейки -->
+                <Line x:Name="HorizontalSlider" X1="0" Y1="0" X2="0" Y2="20" Stroke="Red" StrokeThickness="1" IsHitTestVisible="False"/>
+            </Canvas>
+
+            <!-- Вертикальная линейка -->
+            <Canvas x:Name="VerticalRuler" Width="20" HorizontalAlignment="Left" Visibility="Collapsed" IsHitTestVisible="False">
+                <!-- Деления вертикальной линейки -->
+                <Line X1="0" Y1="0" X2="20" Y2="0" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="0" Y1="100" X2="15" Y2="100" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="0" Y1="200" X2="20" Y2="200" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="0" Y1="300" X2="15" Y2="300" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="0" Y1="400" X2="20" Y2="400" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="0" Y1="500" X2="15" Y2="500" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="0" Y1="600" X2="20" Y2="600" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="0" Y1="700" X2="15" Y2="700" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="0" Y1="800" X2="20" Y2="800" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="0" Y1="900" X2="15" Y2="900" Stroke="Black" StrokeThickness="1"/>
+                <Line X1="0" Y1="1000" X2="20" Y2="1000" Stroke="Black" StrokeThickness="1"/>
+
+                <!-- Цифры (каждые 100 мм) -->
+                <TextBlock Text="0" Canvas.Left="20" Canvas.Top="0" FontSize="10"/>
+                <TextBlock Text="100" Canvas.Left="20" Canvas.Top="100" FontSize="10"/>
+                <TextBlock Text="200" Canvas.Left="20" Canvas.Top="200" FontSize="10"/>
+                <TextBlock Text="300" Canvas.Left="20" Canvas.Top="300" FontSize="10"/>
+                <TextBlock Text="400" Canvas.Left="20" Canvas.Top="400" FontSize="10"/>
+                <TextBlock Text="500" Canvas.Left="20" Canvas.Top="500" FontSize="10"/>
+                <TextBlock Text="600" Canvas.Left="20" Canvas.Top="600" FontSize="10"/>
+                <TextBlock Text="700" Canvas.Left="20" Canvas.Top="700" FontSize="10"/>
+                <TextBlock Text="800" Canvas.Left="20" Canvas.Top="800" FontSize="10"/>
+                <TextBlock Text="900" Canvas.Left="20" Canvas.Top="900" FontSize="10"/>
+                <TextBlock Text="1000" Canvas.Left="20" Canvas.Top="1000" FontSize="10"/>
+
+                <!-- Ползунок вертикальной линейки -->
+                <Line x:Name="VerticalSlider" X1="0" Y1="0" X2="20" Y2="0" Stroke="Red" StrokeThickness="1" IsHitTestVisible="False"/>
+            </Canvas>
+        </Grid>
+    </Grid>
+</Window>
